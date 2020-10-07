@@ -107,6 +107,5 @@ dist
 .vscode/settings.json
 
 # Uploads
-uploads/*.jpg
-uploads/*.jpeg
-uploads/*.png
+public/*.txt
+public/*.ics

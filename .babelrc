@@ -18,7 +18,8 @@
           "@config": "./src/config",
           "@controllers": "./src/controllers",
           "@models": "./src/models",
-          "@services": "./src/services"
+          "@services": "./src/services",
+          "@helpers": "./src/helpers"
         }
       }
     ]
