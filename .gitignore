@@ -108,4 +108,5 @@ dist
 
 # Uploads
 public/*.txt
+public/*.json
 public/*.ics

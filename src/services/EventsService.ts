@@ -1,5 +1,5 @@
 import path from 'path'
-import ical from 'ical-generator'
+import ical, { ICalCalendar } from 'ical-generator'
 
 import icalConfig from '@config/ical'
 import existsAsync from '@helpers/existsAsync'
@@ -13,14 +13,21 @@ interface ICreateEvent {
   end: Date
 }
 
+interface IEvent {
+  id: string
+}
+
 export default class EventsService {
   async create(dto: ICreateEvent) {
     // 1.0 Read stored calendar in case it exists and create a new calendar
     let calendarJson = await this.getStoredCalendar(dto.user)
-    const calendar = this.createCalendar(calendarJson)
+    let calendar = this.createCalendar(calendarJson)
 
-    // 2.0 Add received event
+    // 2.0 Remove received event in case it already exists
     const id = `${dto.start.getTime()}-${dto.end.getTime()}-${dto.summary}`
+    calendar = this.removeEvent(id, calendar)
+
+    // 3.0 Add received event
     const event = calendar.createEvent({
       start: dto.start,
       end: dto.end,
@@ -30,12 +37,12 @@ export default class EventsService {
       uid: id
     })
 
-    // 3.0 Store calendar backup
+    // 4.0 Store calendar backup
     calendarJson = JSON.stringify(calendar)
     let calendarPath = this.createCalendarPath(dto.user, 'json')
     await writeAsync(calendarPath, calendarJson)
 
-    // 4.0 Store calendar ICS
+    // 5.0 Store calendar ICS
     calendarPath = calendarPath.replace('.json', '.ics')
     await writeAsync(calendarPath, calendar.toString())
 
@@ -57,7 +64,7 @@ export default class EventsService {
     return path.resolve(__dirname, '..', '..', 'public', `${user}.${suffix}`)
   }
 
-  private createCalendar(json: string): ical.ICalCalendar {
+  private createCalendar(json: string): ICalCalendar {
     let calendar = ical()
     if (json) {
       // @ts-ignore
@@ -69,5 +76,13 @@ export default class EventsService {
     calendar.url(icalConfig.prodId)
 
     return calendar
+  }
+
+  private removeEvent(id: string, calendar: ICalCalendar): ICalCalendar {
+    const obj = calendar.toJSON()
+    obj.events = obj.events.filter((ev: IEvent) => ev.id !== id)
+
+    // @ts-ignore
+    return ical(JSON.stringify(obj))
   }
 }
