@@ -7,7 +7,6 @@ import cors from 'cors'
 import morgan from 'morgan'
 import 'express-async-errors'
 
-import '@config/mongo'
 import '@config/ical'
 
 import routes from './routes'
